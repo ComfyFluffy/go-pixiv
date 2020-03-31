@@ -58,17 +58,14 @@ type ProfilePublicity struct {
 
 // User may be embedded in Illust, Novel, Comment
 type User struct {
-	ID               int              `json:"id"`
-	Name             string           `json:"name"`
-	Account          string           `json:"account"`
-	ProfileImageURLs ProfileImageURLs `json:"profile_image_urls"`
-	Comment          string           `json:"comment"`
-	IsFollowed       bool             `json:"is_followed"`
-}
-
-// ProfileImageURLs is embedded in User
-type ProfileImageURLs struct {
-	Medium string `json:"medium"`
+	ID               int    `json:"id"`
+	Name             string `json:"name"`
+	Account          string `json:"account"`
+	ProfileImageURLs struct {
+		Medium string `json:"medium"`
+	} `json:"profile_image_urls"`
+	Comment    string `json:"comment"`
+	IsFollowed bool   `json:"is_followed"`
 }
 
 // Illust is embedded in RespIllusts
@@ -81,25 +78,29 @@ type Illust struct {
 	// Use MetaSinglePage or MetaPages instead.
 	ImageURLs ImageURLs `json:"image_urls"`
 
-	Caption        string         `json:"caption"`
-	Restrict       int            `json:"restrict"`
-	User           User           `json:"user"`
-	Tags           []Tag          `json:"tags"`
-	Tools          []string       `json:"tools"`
-	CreateDate     time.Time      `json:"create_date"`
-	PageCount      int            `json:"page_count"`
-	Width          int            `json:"width"`
-	Height         int            `json:"height"`
-	SanityLevel    int            `json:"sanity_level"`
-	XRestrict      int            `json:"x_restrict"`
-	Series         Series         `json:"series"`
-	MetaSinglePage MetaSinglePage `json:"meta_single_page"`
-	MetaPages      []MetaPage     `json:"meta_pages"`
-	TotalView      int            `json:"total_view"`
-	TotalBookmarks int            `json:"total_bookmarks"`
-	IsBookmarked   bool           `json:"is_bookmarked"`
-	Visible        bool           `json:"visible"`
-	IsMuted        bool           `json:"is_muted"`
+	Caption        string    `json:"caption"`
+	Restrict       int       `json:"restrict"`
+	User           User      `json:"user"`
+	Tags           []Tag     `json:"tags"`
+	Tools          []string  `json:"tools"`
+	CreateDate     time.Time `json:"create_date"`
+	PageCount      int       `json:"page_count"`
+	Width          int       `json:"width"`
+	Height         int       `json:"height"`
+	SanityLevel    int       `json:"sanity_level"`
+	XRestrict      int       `json:"x_restrict"`
+	Series         Series    `json:"series"`
+	MetaSinglePage struct {
+		OriginalImageURL string `json:"original_image_url,omitempty"`
+	} `json:"meta_single_page"`
+	MetaPages []struct {
+		ImageURLs ImageURLs `json:"image_urls"`
+	} `json:"meta_pages"`
+	TotalView      int  `json:"total_view"`
+	TotalBookmarks int  `json:"total_bookmarks"`
+	IsBookmarked   bool `json:"is_bookmarked"`
+	Visible        bool `json:"visible"`
+	IsMuted        bool `json:"is_muted"`
 }
 
 // ImageURLs is embedded in Illust, MetaPage, Novel
@@ -108,16 +109,6 @@ type ImageURLs struct {
 	Medium       string `json:"medium"`
 	Large        string `json:"large"`
 	Original     string `json:"original,omitempty"`
-}
-
-// MetaPage is embedded in Illust
-type MetaPage struct {
-	ImageURLs ImageURLs `json:"image_urls"`
-}
-
-// MetaSinglePage is embedded in Illust
-type MetaSinglePage struct {
-	OriginalImageURL string `json:"original_image_url,omitempty"`
 }
 
 // NovelMarker is embedded in RespNovelText
@@ -159,7 +150,7 @@ type Series struct {
 type Tag struct {
 	Name                string `json:"name"`
 	TranslatedName      string `json:"translated_name"`
-	AddedByUploadedUser bool   `json:"added_by_uploaded_user"`
+	AddedByUploadedUser *bool  `json:"added_by_uploaded_user"`
 }
 
 // Comment is embedded in RespComments

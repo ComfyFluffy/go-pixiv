@@ -2,13 +2,16 @@ package pixiv
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/dghubble/sling"
 	"golang.org/x/net/proxy"
 )
 
@@ -34,12 +37,17 @@ var baseHeader = http.Header{
 	"Accept-Language": {"en-us"},
 }
 
+// Proxy setting errors
 var (
 	ErrSetProxyUnsupportedTransport = errors.New("pixiv: can only set proxy for *http.Transport")
 	ErrSetProxyUnsupportedProtocol  = errors.New("pixiv: unsupported proxy protocol")
 )
 
-// AppAPI defines the Pixiv App-API client with config
+type service struct {
+	api *AppAPI
+}
+
+// AppAPI defines the Pixiv App-API client with config.
 type AppAPI struct {
 	ClientID,
 	ClientSecret,
@@ -49,12 +57,14 @@ type AppAPI struct {
 	DeviceToken string
 	BaseHeader http.Header
 
-	Sling  *sling.Sling
 	Client *http.Client // *http.Client with *Transport that can authorize requests automatically
+
+	service *service
+	User    *UserService
 }
 
-func (api *AppAPI) transportAuth() *TransportAuth {
-	return api.Client.Transport.(*TransportAuth)
+func (api *AppAPI) transportAuth() *Transport {
+	return api.Client.Transport.(*Transport)
 }
 
 // New returns new PixivAppAPI with http.DefaultClient
@@ -62,15 +72,9 @@ func New() *AppAPI {
 	return NewWithClient(&http.Client{Timeout: timeOut, Transport: http.DefaultTransport.(*http.Transport).Clone()})
 }
 
-// NewWithClient returns new PixivAppAPI with the given http.Client
+// NewWithClient returns new PixivAppAPI with the given http.Client.
 func NewWithClient(client *http.Client) *AppAPI {
-	s := sling.New().Client(client)
-	for k, v := range baseHeader {
-		s.Set(k, v[0])
-	}
-
 	api := &AppAPI{
-		Sling:        s,
 		BaseURL:      baseURL,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -80,7 +84,10 @@ func NewWithClient(client *http.Client) *AppAPI {
 		Client:       client,
 	}
 
-	client.Transport = &TransportAuth{
+	api.service = &service{api: api}
+	api.User = (*UserService)(api.service)
+
+	client.Transport = &Transport{
 		Base:        client.Transport,
 		AuthURL:     authURL,
 		ExpiryDelta: expiryDelta,
@@ -121,10 +128,13 @@ func (api *AppAPI) SetProxy(p string) error {
 			return err
 		}
 		tr.DialContext = spd.(proxy.ContextDialer).DialContext
+	default:
+		return ErrSetProxyUnsupportedProtocol
 	}
-	return ErrSetProxyUnsupportedProtocol
+	return nil
 }
 
+// SetUser sets the username and password for auth.
 func (api *AppAPI) SetUser(username, password string) {
 	tr := api.transportAuth()
 	tr.Username = username
@@ -132,6 +142,7 @@ func (api *AppAPI) SetUser(username, password string) {
 	tr.RefreshToken = ""
 }
 
+// SetRefreshToken sets the refresh_token for auth.
 func (api *AppAPI) SetRefreshToken(token string) {
 	tr := api.transportAuth()
 	tr.RefreshToken = token
@@ -139,6 +150,91 @@ func (api *AppAPI) SetRefreshToken(token string) {
 	tr.Password = ""
 }
 
+// SetLanguage sets Accept-Language header to the given language.
+// This affects the language of tag translations and messages.
+func (api *AppAPI) SetLanguage(lang string) {
+	api.BaseHeader["Accept-Language"] = []string{lang}
+}
+
+// Auth do the auth with given username and password or refresh_token.
 func (api *AppAPI) Auth() (*RespAuth, error) {
 	return api.transportAuth().Auth(context.Background())
+}
+
+func (api *AppAPI) setHeaders(req *http.Request) {
+	req.Header = api.BaseHeader.Clone()
+	nows := time.Now().Format(time.RFC3339)
+	req.Header["X-Client-Time"] = []string{nows}
+	x := md5.Sum([]byte(nows + api.HashSecret))
+	req.Header["X-Client-Hash"] = []string{hex.EncodeToString(x[:])}
+}
+
+// NewRequest sets headers and body of a new request with given method, url and form.
+func (api *AppAPI) NewRequest(method, url string, data url.Values) (*http.Request, error) {
+	var buf io.Reader
+	if data != nil {
+		buf = strings.NewReader(data.Encode())
+	}
+	req, err := http.NewRequest(method, url, buf)
+	api.setHeaders(req)
+	if err != nil {
+		return nil, err
+	}
+	if data != nil {
+		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
+	}
+	return req, err
+}
+
+// Receive sends the request and decode the response into successV or errorV.
+// If the status code is 2XX, the response will be decode into successV.
+// Otherwise, it will be decode into errorV.
+func (api *AppAPI) Receive(req *http.Request, successV interface{}, errorV interface{}) (bool, *http.Response, error) {
+	resp, err := api.Client.Do(req)
+	if err != nil {
+		return false, nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 300 && resp.StatusCode >= 200 {
+		if successV != nil {
+			dec := json.NewDecoder(resp.Body)
+			err = dec.Decode(successV)
+			if err != nil {
+				return false, nil, err
+			}
+		}
+		return true, resp, err
+	}
+	if errorV != nil {
+		dec := json.NewDecoder(resp.Body)
+		err = dec.Decode(errorV)
+		if err != nil {
+			return false, nil, err
+		}
+	}
+	return false, resp, nil
+}
+
+func (api *AppAPI) get(purl string, query url.Values, v interface{}) (*http.Response, error) {
+	req, err := api.NewRequest("GET", api.BaseURL+purl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if query != nil {
+		req.URL.RawQuery = query.Encode()
+	}
+
+	rerr := &ErrAppAPI{}
+	ok, resp, err := api.Receive(req, v, rerr)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		rerr.response = resp
+		return nil, rerr
+	}
+
+	return resp, nil
 }

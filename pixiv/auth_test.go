@@ -2,24 +2,20 @@ package pixiv
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 )
 
 func TestAuth(t *testing.T) {
-	api := New()
-	token, ok := os.LookupEnv("PIXIV_REFRESH_TOKEN")
-	if !ok {
-		t.Fatal("env:PIXIV_REFRESH_TOKEN not set")
+
+	// u := &RespUserDetail{}
+	// api.Sling.Get("https://app-api.pixiv.net/v1/user/detail?user_id=10489689").ReceiveSuccess(u)
+	// t.Log(u)
+	api, err := getTestAPI()
+	if err != nil {
+		t.Fatal(err)
 	}
-	api.SetRefreshToken(token)
-	if proxy, ok := os.LookupEnv("PIXIV_PROXY"); ok {
-		api.SetProxy(proxy)
-	}
-	u := &RespUserDetail{}
-	api.Sling.Get("https://app-api.pixiv.net/v1/user/detail?user_id=10489689").ReceiveSuccess(u)
-	t.Log(u)
-	req, err := api.Sling.Get("https://app-api.pixiv.net/v2/illust/comments?illust_id=70161616").Request()
+
+	req, err := api.NewRequest("GET", "https://app-api.pixiv.net/v2/illust/comments?illust_id=70161616", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
