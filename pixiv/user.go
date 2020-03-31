@@ -23,6 +23,11 @@ type BookmarkQuery struct {
 	Filter string `url:"filter,omitempty"` //for_ios
 }
 
+// UserDetailQuery defines url query struct in fetching user's detail.
+type UserDetailQuery struct {
+	Filter string `url:"filter,omitempty"` //for_ios
+}
+
 // FollowingQuery defines url query struct in fetching user's followings.
 type FollowingQuery struct {
 	Restrict Restrict `url:"restrict,omitempty"`
@@ -67,9 +72,11 @@ func (u *UserService) withValues(r interface{}, opts interface{}, values url.Val
 }
 
 // Detail fetches user profile from /v1/user/detail
-func (u *UserService) Detail(userID int) (*RespUserDetail, error) {
+func (u *UserService) Detail(userID int, opts *UserDetailQuery) (*RespUserDetail, error) {
 	r := &RespUserDetail{}
-	_, err := u.api.get(u.api.BaseURL+"/v1/user/detail?user_id="+strconv.Itoa(userID), nil, r)
+	err := u.withValues(r, opts, url.Values{
+		"user_id": []string{strconv.Itoa(userID)}},
+		u.api.BaseURL+"/v1/user/detail", "user detail")
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +88,7 @@ func (u *UserService) Illusts(userID int, opts *IllustQuery) (*RespIllusts, erro
 	r := &RespIllusts{api: u.api}
 	err := u.withValues(r, opts, url.Values{
 		"user_id": []string{strconv.Itoa(userID)}},
-		u.api.BaseURL+"/v1/user/illusts", "illusts")
+		u.api.BaseURL+"/v1/user/illusts", "user's illusts")
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +126,7 @@ func (u *UserService) BookmarkedNovels(userID int, restrict Restrict, opts *Book
 	err := u.withValues(r, opts, url.Values{
 		"user_id":  []string{strconv.Itoa(userID)},
 		"restrict": []string{string(restrict)}},
-		u.api.BaseURL+"/v1/user/bookmarks/novel", "novels")
+		u.api.BaseURL+"/v1/user/bookmarks/novel", "user's novels")
 	if err != nil {
 		return nil, err
 	}

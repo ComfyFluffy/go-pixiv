@@ -182,8 +182,8 @@ type RespUserFollowing struct {
 	api *AppAPI
 }
 
-// NextUserPreviews fetches NextURL with API.
-func (r *RespUserFollowing) NextUserPreviews() (*RespUserFollowing, error) {
+// NextFollowing fetches NextURL with API.
+func (r *RespUserFollowing) NextFollowing() (*RespUserFollowing, error) {
 	if r.NextURL == "" {
 		return nil, ErrEmptyNextURL
 	}

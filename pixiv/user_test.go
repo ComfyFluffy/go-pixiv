@@ -9,19 +9,29 @@ func TestUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = api.User.Detail(id)
+	_, err = api.User.Detail(id, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = api.User.Illusts(id, nil)
+	ri, err := api.User.Illusts(id, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ri.NextIllusts()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = api.User.Novels(id, nil)
+	rn, err := api.User.Novels(id, nil)
 	if err != nil {
 		t.Fatal(err)
+	}
+	for rn.NextURL != "" {
+		rn, err = rn.NextNovels()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	_, err = api.User.BookmarkedIllusts(id, RPublic, nil)
@@ -29,18 +39,21 @@ func TestUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = api.User.BookmarkedNovels(id, RPublic, nil)
+	rbn, err := api.User.BookmarkedNovels(id, RPublic, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = rbn.NextNovels()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	r, err := api.User.Following(id, nil)
+	rf, err := api.User.Following(id, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	r2, err := r.NextUserPreviews()
+	_, err = rf.NextFollowing()
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(r2)
 }
