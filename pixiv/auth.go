@@ -97,6 +97,7 @@ func (t *Transport) Auth(ctx context.Context) (*RespAuth, error) {
 		if r.Response.ExpiresIn != 0 {
 			t.ExpireAt = time.Now().Add(time.Duration(r.Response.ExpiresIn) * time.Second)
 		}
+		t.api.AuthResponse = r
 		return r, nil
 	}
 	rerr := &ErrAuth{}

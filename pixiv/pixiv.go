@@ -22,7 +22,6 @@ const (
 	deviceToken  = "ec731472f8db58afe8588cbba92d5846"
 	baseURL      = "https://app-api.pixiv.net"
 	authURL      = "https://oauth.secure.pixiv.net/auth/token"
-	imageBaseURL = "https://i.pximg.net"
 	timeOut      = 15 * time.Second
 	expiryDelta  = 30 * time.Second
 )
@@ -53,14 +52,16 @@ type AppAPI struct {
 	ClientSecret,
 	HashSecret,
 	BaseURL,
-	ImageBaseURL,
 	DeviceToken string
 	BaseHeader http.Header
+
+	AuthResponse *RespAuth
 
 	Client *http.Client // *http.Client with *Transport that can authorize requests automatically
 
 	service *service
-	User    *UserService
+
+	User *UserService
 }
 
 func (api *AppAPI) transportAuth() *Transport {
@@ -150,10 +151,10 @@ func (api *AppAPI) SetRefreshToken(token string) {
 	tr.Password = ""
 }
 
-// SetLanguage sets Accept-Language header to the given language.
+// SetLanguage sets Accept-Language header to the given languages.
 // This affects the language of tag translations and messages.
-func (api *AppAPI) SetLanguage(lang string) {
-	api.BaseHeader["Accept-Language"] = []string{lang}
+func (api *AppAPI) SetLanguage(languages []string) {
+	api.BaseHeader["Accept-Language"] = languages
 }
 
 // Auth do the auth with given username and password or refresh_token.
@@ -216,8 +217,8 @@ func (api *AppAPI) Receive(req *http.Request, successV interface{}, errorV inter
 	return false, resp, nil
 }
 
-func (api *AppAPI) get(purl string, query url.Values, v interface{}) (*http.Response, error) {
-	req, err := api.NewRequest("GET", api.BaseURL+purl, nil)
+func (api *AppAPI) get(urls string, query url.Values, v interface{}) (*http.Response, error) {
+	req, err := api.NewRequest("GET", urls, nil)
 	if err != nil {
 		return nil, err
 	}
