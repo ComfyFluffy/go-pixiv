@@ -78,18 +78,33 @@ func (e *ErrAppAPI) Error() string {
 }
 
 // RespComments is the response from:
-//  https://app-api.pixiv.net/v2/illust/comments?illust_id=...
-//  https://app-api.pixiv.net/v2/novel/comments?novel_id=...
-//  https://app-api.pixiv.net/v1/illust/comment/replies?comment_id=...
+//  /v2/illust/comments?illust_id=...
+//  /v2/novel/comments?novel_id=...
+//  /v1/illust/comment/replies?comment_id=...
 type RespComments struct {
 	Comments []Comment `json:"comments"`
 	NextURL  string    `json:"next_url"`
+
+	api *AppAPI
+}
+
+// NextComments fetches NextURL with API.
+func (r *RespComments) NextComments() (*RespComments, error) {
+	if r.NextURL == "" {
+		return nil, ErrEmptyNextURL
+	}
+	rn := &RespComments{api: r.api}
+	err := r.api.get(rn, r.NextURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	return rn, nil
 }
 
 // RespNovels is the response from:
 //
-//  https://app-api.pixiv.net/v1/user/novels?user_id=...
-//  https://app-api.pixiv.net/v1/user/bookmarks/novel?user_id=...&restrict=...
+//  /v1/user/novels?user_id=...
+//  /v1/user/bookmarks/novel?user_id=...&restrict=...
 type RespNovels struct {
 	Novels        []Novel `json:"novels"`
 	RankingNovels []Novel `json:"ranking_novels"`
@@ -105,7 +120,7 @@ func (r *RespNovels) NextNovels() (*RespNovels, error) {
 		return nil, ErrEmptyNextURL
 	}
 	rn := &RespNovels{api: r.api}
-	_, err := r.api.get(r.NextURL, nil, rn)
+	err := r.api.get(rn, r.NextURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +129,7 @@ func (r *RespNovels) NextNovels() (*RespNovels, error) {
 
 // RespNovelText is the response from:
 //
-//  https://app-api.pixiv.net/v1/novel/text?novel_id=...
+//  /v1/novel/text?novel_id=...
 type RespNovelText struct {
 	NovelMarker NovelMarker `json:"novel_marker"`
 
@@ -123,11 +138,18 @@ type RespNovelText struct {
 	SeriesNext Novel  `json:"series_next"`
 }
 
+// RespIllust is the response from:
+//
+//  /v1/illust/detail?user_id=...
+type RespIllust struct {
+	Illust Illust `json:"illust"`
+}
+
 // RespIllusts is the response from:
 //
-//  https://app-api.pixiv.net/v2/illust/mypixiv
-//  https://app-api.pixiv.net/v1/illust/new?content_type=...
-//  https://app-api.pixiv.net/v1/user/illusts?user_id=...&type=...
+//  /v2/illust/mypixiv
+//  /v1/illust/new?content_type=...
+//  /v1/user/illusts?user_id=...&type=...
 type RespIllusts struct {
 	Illusts []Illust `json:"illusts"`
 	NextURL string   `json:"next_url"`
@@ -141,7 +163,7 @@ func (r *RespIllusts) NextIllusts() (*RespIllusts, error) {
 		return nil, ErrEmptyNextURL
 	}
 	rn := &RespIllusts{api: r.api}
-	_, err := r.api.get(r.NextURL, nil, rn)
+	err := r.api.get(rn, r.NextURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +172,7 @@ func (r *RespIllusts) NextIllusts() (*RespIllusts, error) {
 
 // RespUserDetail is the response from:
 //
-//  https://app-api.pixiv.net/v1/user/detail?user_id=...
+//  /v1/user/detail?user_id=...
 type RespUserDetail struct {
 	User    User    `json:"user"`
 	Profile Profile `json:"profile"`
@@ -169,7 +191,7 @@ type RespUserDetail struct {
 
 // RespUserFollowing is the response from:
 //
-//  https://app-api.pixiv.net/v1/user/following?restrict=...&user_id=...
+//  /v1/user/following?restrict=...&user_id=...
 type RespUserFollowing struct {
 	UserPreviews []struct {
 		User    User     `json:"user"`
@@ -188,7 +210,7 @@ func (r *RespUserFollowing) NextFollowing() (*RespUserFollowing, error) {
 		return nil, ErrEmptyNextURL
 	}
 	rn := &RespUserFollowing{api: r.api}
-	_, err := r.api.get(r.NextURL, nil, rn)
+	err := r.api.get(rn, r.NextURL, nil)
 	if err != nil {
 		return nil, err
 	}

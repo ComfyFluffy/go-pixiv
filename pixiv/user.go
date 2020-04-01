@@ -1,14 +1,11 @@
 package pixiv
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
-
-	"github.com/google/go-querystring/query"
 )
 
-// UserService runs the fetching about user.
+// UserService does the fetching with user.
 type UserService service
 
 // IllustQuery defines url query struct in fetching user's illusts.
@@ -33,9 +30,6 @@ type FollowingQuery struct {
 	Restrict Restrict `url:"restrict,omitempty"`
 }
 
-// NovelQuery defines url query struct in fetching novels.
-type NovelQuery struct{}
-
 // Restrict defines the restrict query field in fetching bookmark.
 // It can be "public" or "private".
 type Restrict string
@@ -47,36 +41,13 @@ const (
 	RAll     Restrict = "all"
 )
 
-func (u *UserService) withValues(r interface{}, opts interface{}, values url.Values, urls string, caller string) error {
-	var err error
-	var q url.Values
-
-	if opts != nil {
-		q, err = query.Values(opts)
-		if err != nil {
-			return fmt.Errorf("pixiv: user %s: query encode: %w", caller, err)
-		}
-		for k, v := range values {
-			q[k] = v
-		}
-	} else {
-		q = values
-	}
-
-	_, err = u.api.get(urls, q, r)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Detail fetches user profile from /v1/user/detail
-func (u *UserService) Detail(userID int, opts *UserDetailQuery) (*RespUserDetail, error) {
+func (s *UserService) Detail(userID int, opts *UserDetailQuery) (*RespUserDetail, error) {
 	r := &RespUserDetail{}
-	err := u.withValues(r, opts, url.Values{
-		"user_id": []string{strconv.Itoa(userID)}},
-		u.api.BaseURL+"/v1/user/detail", "user detail")
+	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/detail", opts, url.Values{
+		"user_id": {strconv.Itoa(userID)},
+	}, "user detail",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +55,12 @@ func (u *UserService) Detail(userID int, opts *UserDetailQuery) (*RespUserDetail
 }
 
 // Illusts fetches user's illusts.
-func (u *UserService) Illusts(userID int, opts *IllustQuery) (*RespIllusts, error) {
-	r := &RespIllusts{api: u.api}
-	err := u.withValues(r, opts, url.Values{
-		"user_id": []string{strconv.Itoa(userID)}},
-		u.api.BaseURL+"/v1/user/illusts", "user's illusts")
+func (s *UserService) Illusts(userID int, opts *IllustQuery) (*RespIllusts, error) {
+	r := &RespIllusts{api: s.api}
+	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/illusts", opts, url.Values{
+		"user_id": {strconv.Itoa(userID)},
+	}, "user's illusts",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +68,13 @@ func (u *UserService) Illusts(userID int, opts *IllustQuery) (*RespIllusts, erro
 }
 
 // BookmarkedIllusts fetches user's bookmarked illusts.
-func (u *UserService) BookmarkedIllusts(userID int, restrict Restrict, opts *BookmarkQuery) (*RespIllusts, error) {
-	r := &RespIllusts{api: u.api}
-	err := u.withValues(r, opts, url.Values{
-		"user_id":  []string{strconv.Itoa(userID)},
-		"restrict": []string{string(restrict)}},
-		u.api.BaseURL+"/v1/user/bookmarks/illust", "bookmarked illusts")
+func (s *UserService) BookmarkedIllusts(userID int, restrict Restrict, opts *BookmarkQuery) (*RespIllusts, error) {
+	r := &RespIllusts{api: s.api}
+	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/bookmarks/illust", opts, url.Values{
+		"user_id":  {strconv.Itoa(userID)},
+		"restrict": {string(restrict)},
+	}, "user's bookmarked illusts",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -109,11 +82,12 @@ func (u *UserService) BookmarkedIllusts(userID int, restrict Restrict, opts *Boo
 }
 
 // Novels fetches user's novels.
-func (u *UserService) Novels(userID int, opts *NovelQuery) (*RespNovels, error) {
-	r := &RespNovels{api: u.api}
-	err := u.withValues(r, opts, url.Values{
-		"user_id": []string{strconv.Itoa(userID)}},
-		u.api.BaseURL+"/v1/user/novels", "novels")
+func (s *UserService) Novels(userID int) (*RespNovels, error) {
+	r := &RespNovels{api: s.api}
+	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/novels", nil, url.Values{
+		"user_id": {strconv.Itoa(userID)},
+	}, "user's novels",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -121,24 +95,26 @@ func (u *UserService) Novels(userID int, opts *NovelQuery) (*RespNovels, error) 
 }
 
 // BookmarkedNovels fetches user's bookmarked novels.
-func (u *UserService) BookmarkedNovels(userID int, restrict Restrict, opts *BookmarkQuery) (*RespNovels, error) {
-	r := &RespNovels{api: u.api}
-	err := u.withValues(r, opts, url.Values{
-		"user_id":  []string{strconv.Itoa(userID)},
-		"restrict": []string{string(restrict)}},
-		u.api.BaseURL+"/v1/user/bookmarks/novel", "user's novels")
+func (s *UserService) BookmarkedNovels(userID int, restrict Restrict, opts *BookmarkQuery) (*RespNovels, error) {
+	r := &RespNovels{api: s.api}
+	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/bookmarks/novel", opts, url.Values{
+		"user_id":  {strconv.Itoa(userID)},
+		"restrict": {string(restrict)},
+	}, "user's bookmarked novels",
+	)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-// Following fetches user following with UserPreviews
-func (u *UserService) Following(userID int, opts *FollowingQuery) (*RespUserFollowing, error) {
-	r := &RespUserFollowing{api: u.api}
-	err := u.withValues(r, opts, url.Values{
-		"user_id": []string{strconv.Itoa(userID)}},
-		u.api.BaseURL+"/v1/user/following", "following")
+// Followings fetches user following with UserPreviews
+func (s *UserService) Followings(userID int, opts *FollowingQuery) (*RespUserFollowing, error) {
+	r := &RespUserFollowing{api: s.api}
+	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/following", opts, url.Values{
+		"user_id": {strconv.Itoa(userID)},
+	}, "user's following",
+	)
 	if err != nil {
 		return nil, err
 	}

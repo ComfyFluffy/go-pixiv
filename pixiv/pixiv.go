@@ -6,12 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/google/go-querystring/query"
 	"golang.org/x/net/proxy"
 )
 
@@ -42,6 +44,20 @@ var (
 	ErrSetProxyUnsupportedProtocol  = errors.New("pixiv: unsupported proxy protocol")
 )
 
+func withOpts(opts interface{}, values url.Values, caller string) (url.Values, error) {
+	if opts != nil {
+		q, err := query.Values(opts)
+		if err != nil {
+			return nil, fmt.Errorf("pixiv: %s: query encode: %w", caller, err)
+		}
+		for k, v := range values {
+			q[k] = v
+		}
+		return q, nil
+	}
+	return values, nil
+}
+
 type service struct {
 	api *AppAPI
 }
@@ -61,10 +77,11 @@ type AppAPI struct {
 
 	service *service
 
-	User *UserService
+	User   *UserService
+	Illust *IllustService
 }
 
-func (api *AppAPI) transportAuth() *Transport {
+func (api *AppAPI) transport() *Transport {
 	return api.Client.Transport.(*Transport)
 }
 
@@ -87,6 +104,7 @@ func NewWithClient(client *http.Client) *AppAPI {
 
 	api.service = &service{api: api}
 	api.User = (*UserService)(api.service)
+	api.Illust = (*IllustService)(api.service)
 
 	client.Transport = &Transport{
 		Base:        client.Transport,
@@ -101,7 +119,7 @@ func NewWithClient(client *http.Client) *AppAPI {
 // SetProxy sets the proxy with the given URI.
 // Supports SOCKS5 or HTTP proxy.
 func (api *AppAPI) SetProxy(p string) error {
-	trb := api.transportAuth().Base
+	trb := api.transport().Base
 	var tr *http.Transport
 	if trx, ok := trb.(*http.Transport); ok {
 		tr = trx
@@ -137,7 +155,7 @@ func (api *AppAPI) SetProxy(p string) error {
 
 // SetUser sets the username and password for auth.
 func (api *AppAPI) SetUser(username, password string) {
-	tr := api.transportAuth()
+	tr := api.transport()
 	tr.Username = username
 	tr.Password = password
 	tr.RefreshToken = ""
@@ -145,7 +163,7 @@ func (api *AppAPI) SetUser(username, password string) {
 
 // SetRefreshToken sets the refresh_token for auth.
 func (api *AppAPI) SetRefreshToken(token string) {
-	tr := api.transportAuth()
+	tr := api.transport()
 	tr.RefreshToken = token
 	tr.Username = ""
 	tr.Password = ""
@@ -159,7 +177,7 @@ func (api *AppAPI) SetLanguage(languages []string) {
 
 // Auth do the auth with given username and password or refresh_token.
 func (api *AppAPI) Auth() (*RespAuth, error) {
-	return api.transportAuth().Auth(context.Background())
+	return api.transport().Auth(context.Background())
 }
 
 func (api *AppAPI) setHeaders(req *http.Request) {
@@ -205,7 +223,7 @@ func (api *AppAPI) Receive(req *http.Request, successV interface{}, errorV inter
 				return false, nil, err
 			}
 		}
-		return true, resp, err
+		return true, resp, nil
 	}
 	if errorV != nil {
 		dec := json.NewDecoder(resp.Body)
@@ -217,16 +235,7 @@ func (api *AppAPI) Receive(req *http.Request, successV interface{}, errorV inter
 	return false, resp, nil
 }
 
-func (api *AppAPI) get(urls string, query url.Values, v interface{}) (*http.Response, error) {
-	req, err := api.NewRequest("GET", urls, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if query != nil {
-		req.URL.RawQuery = query.Encode()
-	}
-
+func (api *AppAPI) withAppAPIErrors(req *http.Request, v interface{}) (*http.Response, error) {
 	rerr := &ErrAppAPI{}
 	ok, resp, err := api.Receive(req, v, rerr)
 	if err != nil {
@@ -236,6 +245,47 @@ func (api *AppAPI) get(urls string, query url.Values, v interface{}) (*http.Resp
 		rerr.response = resp
 		return nil, rerr
 	}
-
 	return resp, nil
+}
+
+func (api *AppAPI) get(r interface{}, urls string, query url.Values) error {
+	req, err := api.NewRequest("GET", urls, nil)
+	if err != nil {
+		return err
+	}
+
+	if query != nil {
+		req.URL.RawQuery = query.Encode()
+	}
+
+	_, err = api.withAppAPIErrors(req, r)
+	return err
+}
+
+func (api *AppAPI) post(r interface{}, urls string, body url.Values) error {
+	req, err := api.NewRequest("POST", urls, body)
+	if err != nil {
+		return err
+	}
+
+	_, err = api.withAppAPIErrors(req, r)
+	return err
+}
+
+func (api *AppAPI) getWithValues(r interface{}, urls string, opts interface{}, values url.Values, caller string) error {
+	q, err := withOpts(opts, values, caller)
+	if err != nil {
+		return err
+	}
+
+	return api.get(r, urls, q)
+}
+
+func (api *AppAPI) postWithValues(r interface{}, urls string, opts interface{}, values url.Values, caller string) error {
+	body, err := withOpts(opts, values, caller)
+	if err != nil {
+		return err
+	}
+
+	return api.post(r, urls, body)
 }

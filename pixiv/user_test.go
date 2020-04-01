@@ -15,15 +15,12 @@ func TestUser(t *testing.T) {
 	}
 
 	ri, err := api.User.Illusts(id, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 	_, err = ri.NextIllusts()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rn, err := api.User.Novels(id, nil)
+	rn, err := api.User.Novels(id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +45,7 @@ func TestUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rf, err := api.User.Following(id, nil)
+	rf, err := api.User.Followings(id, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -32,12 +32,22 @@ import (
 
 func main() {
     api := pixiv.New()
-    api.SetRefreshToken("xxx")
-    api.SetProxy("socks5://127.0.0.1")
+
+    api.SetUser("xxx@xxx.com", "password")
+    // or api.SetRefreshToken("xxx")
+
+    api.SetProxy("socks5://127.0.0.1:1080")
+
     r, err := api.User.Detail(123, nil)
     if err != nil {
         log.Fatal(err)
     }
+
     log.Printf("%+v", r)
+    api.Illust.AddBookmark(123, pixiv.RPublic, nil)
+    api.Illust.AddBookmark(456, pixiv.RPrivate,
+        &pixiv.AddBookmarkOptions{
+        Tags: []string{"風景"},
+    })
 }
 ```
