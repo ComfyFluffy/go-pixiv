@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// IllustService does the fetching with illust.
+// IllustService does ops with illust.
 type IllustService service
 
 // AddBookmarkOptions defines form body in AddBookmark.
@@ -22,14 +22,6 @@ type RelatedQuery struct {
 type NewIllustsQuery struct {
 	ContentType string `url:"content_type,omitempty"`
 	Filter      string `url:"filter,omitempty"`
-}
-
-func intsToStrings(idns []int) []string {
-	ids := make([]string, len(idns))
-	for i, x := range idns {
-		ids[i] = strconv.Itoa(x)
-	}
-	return ids
 }
 
 // AddBookmark adds illust to public or private bookmark.

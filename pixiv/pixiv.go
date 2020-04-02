@@ -6,14 +6,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/google/go-querystring/query"
 	"golang.org/x/net/proxy"
 )
 
@@ -44,20 +42,6 @@ var (
 	ErrSetProxyUnsupportedProtocol  = errors.New("pixiv: unsupported proxy protocol")
 )
 
-func withOpts(opts interface{}, values url.Values, caller string) (url.Values, error) {
-	if opts != nil {
-		q, err := query.Values(opts)
-		if err != nil {
-			return nil, fmt.Errorf("pixiv: %s: query encode: %w", caller, err)
-		}
-		for k, v := range values {
-			q[k] = v
-		}
-		return q, nil
-	}
-	return values, nil
-}
-
 type service struct {
 	api *AppAPI
 }
@@ -71,6 +55,7 @@ type AppAPI struct {
 	DeviceToken string
 	BaseHeader http.Header
 
+	// Contains details of login user.
 	AuthResponse *RespAuth
 
 	Client *http.Client // *http.Client with *Transport that can authorize requests automatically

@@ -101,6 +101,13 @@ func (r *RespComments) NextComments() (*RespComments, error) {
 	return rn, nil
 }
 
+// RespNovel is the response from:
+//
+//  /v2/novel/detail?novel_id=...
+type RespNovel struct {
+	Novel Novel `json:"novel"`
+}
+
 // RespNovels is the response from:
 //
 //  /v1/user/novels?user_id=...
@@ -134,13 +141,13 @@ type RespNovelText struct {
 	NovelMarker NovelMarker `json:"novel_marker"`
 
 	NovelText  string `json:"novel_text"`
-	SeriesPrev Novel  `json:"series_prev"`
-	SeriesNext Novel  `json:"series_next"`
+	SeriesPrev *Novel `json:"series_prev"`
+	SeriesNext *Novel `json:"series_next"`
 }
 
 // RespIllust is the response from:
 //
-//  /v1/illust/detail?user_id=...
+//  /v1/illust/detail?illust_id=...
 type RespIllust struct {
 	Illust Illust `json:"illust"`
 }

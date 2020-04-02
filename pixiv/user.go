@@ -30,17 +30,6 @@ type FollowingQuery struct {
 	Restrict Restrict `url:"restrict,omitempty"`
 }
 
-// Restrict defines the restrict query field in fetching bookmark.
-// It can be "public" or "private".
-type Restrict string
-
-// Restrict can be "public" or "private".
-const (
-	RPublic  Restrict = "public"
-	RPrivate Restrict = "private"
-	RAll     Restrict = "all"
-)
-
 // Detail fetches user profile from /v1/user/detail
 func (s *UserService) Detail(userID int, opts *UserDetailQuery) (*RespUserDetail, error) {
 	r := &RespUserDetail{}
@@ -108,7 +97,7 @@ func (s *UserService) BookmarkedNovels(userID int, restrict Restrict, opts *Book
 	return r, nil
 }
 
-// Followings fetches user following with UserPreviews
+// Followings fetches user followings.
 func (s *UserService) Followings(userID int, opts *FollowingQuery) (*RespUserFollowing, error) {
 	r := &RespUserFollowing{api: s.api}
 	err := s.api.getWithValues(r, s.api.BaseURL+"/v1/user/following", opts, url.Values{
