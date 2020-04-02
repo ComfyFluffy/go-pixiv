@@ -9,6 +9,7 @@ import (
 )
 
 func withOpts(opts interface{}, values url.Values, caller string) (url.Values, error) {
+	// Overwrite opts with values
 	if opts != nil {
 		q, err := query.Values(opts)
 		if err != nil {

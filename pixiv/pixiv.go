@@ -194,10 +194,10 @@ func (api *AppAPI) NewRequest(method, url string, data url.Values) (*http.Reques
 	return req, err
 }
 
-// Receive sends the request and decode the response into successV or errorV.
+// receive sends the request and decode the response into successV or errorV.
 // If the status code is 2XX, the response will be decode into successV.
 // Otherwise, it will be decode into errorV.
-func (api *AppAPI) Receive(req *http.Request, successV interface{}, errorV interface{}) (bool, *http.Response, error) {
+func (api *AppAPI) receive(req *http.Request, successV interface{}, errorV interface{}) (bool, *http.Response, error) {
 	resp, err := api.Client.Do(req)
 	if err != nil {
 		return false, nil, err
@@ -226,7 +226,7 @@ func (api *AppAPI) Receive(req *http.Request, successV interface{}, errorV inter
 
 func (api *AppAPI) withAppAPIErrors(req *http.Request, v interface{}) (*http.Response, error) {
 	rerr := &ErrAppAPI{}
-	ok, resp, err := api.Receive(req, v, rerr)
+	ok, resp, err := api.receive(req, v, rerr)
 	if err != nil {
 		return nil, err
 	}
