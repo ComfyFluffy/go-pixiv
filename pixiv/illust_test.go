@@ -4,12 +4,8 @@ import "testing"
 
 func TestBookmarkOps(t *testing.T) {
 	id := 80486549
-	api, err := getTestAPI()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = api.Illust.DeleteBookmark(id)
+	api := getTestAPI(t)
+	err := api.Illust.DeleteBookmark(id)
 	if err != nil && err.(*ErrAppAPI).response.StatusCode != 404 {
 		t.Fatal(err)
 	}

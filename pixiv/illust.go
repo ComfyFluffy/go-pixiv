@@ -142,3 +142,17 @@ func (s *IllustService) NewFromMyPixiv() (*RespIllusts, error) {
 	}
 	return r, nil
 }
+
+// UgoiraMetadata fetches ugoira metadata.
+func (s *IllustService) UgoiraMetadata(illustID int) (*RespUgoiraMetadata, error) {
+	r := &RespUgoiraMetadata{}
+	err := s.api.getWithValues(r,
+		s.api.BaseURL+"/v1/ugoira/metadata", nil, url.Values{
+			"illust_id": {strconv.Itoa(illustID)},
+		}, "illust: ugoira metadata",
+	)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}

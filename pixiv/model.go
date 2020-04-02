@@ -1,9 +1,6 @@
 package pixiv
 
 import (
-	"fmt"
-	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -170,36 +167,6 @@ type Comment struct {
 	Date       time.Time `json:"date"`
 	User       User      `json:"user"`
 	HasReplies bool      `json:"has_replies"`
-}
-
-// RepliesIllust fetches illust comment replies.
-func (c *Comment) RepliesIllust(api *AppAPI) (*RespComments, error) {
-	if !c.HasReplies {
-		return nil, fmt.Errorf("comment %d has no replies", c.ID)
-	}
-	r := &RespComments{api: api}
-	err := api.getWithValues(r, "/v1/illust/comment/replies", nil, url.Values{
-		"comment_id": {strconv.Itoa(c.ID)},
-	}, "comment replies: illust")
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
-}
-
-// RepliesNovel fetches novel comment replies.
-func (c *Comment) RepliesNovel(api *AppAPI) (*RespComments, error) {
-	if !c.HasReplies {
-		return nil, fmt.Errorf("comment %d has no replies", c.ID)
-	}
-	r := &RespComments{api: api}
-	err := api.getWithValues(r, "/v1/novel/comment/replies", nil, url.Values{
-		"comment_id": {strconv.Itoa(c.ID)},
-	}, "comment replies: novel")
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
 }
 
 /*

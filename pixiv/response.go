@@ -196,30 +196,61 @@ type RespUserDetail struct {
 	Workspace map[string]string `json:"workspace"`
 }
 
-// RespUserFollowing is the response from:
+// RespUserPreviews is the response from:
 //
 //  /v1/user/following?restrict=...&user_id=...
-type RespUserFollowing struct {
-	UserPreviews []struct {
-		User    User     `json:"user"`
-		Illusts []Illust `json:"illusts"`
-		Novels  []Novel  `json:"novels"`
-		IsMuted bool     `json:"is_muted"`
-	} `json:"user_previews"`
-	NextURL string `json:"next_url"`
+type RespUserPreviews struct {
+	UserPreviews []UserPreview `json:"user_previews"`
+	NextURL      string        `json:"next_url"`
 
 	api *AppAPI
 }
 
+// UserPreview contains last 3 illusts and novels of a user.
+type UserPreview struct {
+	User    User     `json:"user"`
+	Illusts []Illust `json:"illusts"`
+	Novels  []Novel  `json:"novels"`
+	IsMuted bool     `json:"is_muted"`
+}
+
 // NextFollowing fetches NextURL with API.
-func (r *RespUserFollowing) NextFollowing() (*RespUserFollowing, error) {
+func (r *RespUserPreviews) NextFollowing() (*RespUserPreviews, error) {
 	if r.NextURL == "" {
 		return nil, ErrEmptyNextURL
 	}
-	rn := &RespUserFollowing{api: r.api}
+	rn := &RespUserPreviews{api: r.api}
 	err := r.api.get(rn, r.NextURL, nil)
 	if err != nil {
 		return nil, err
 	}
 	return rn, nil
+}
+
+// RespBookmarkTags is the response from:
+//
+//  /v1/user/bookmark-tags/illust
+type RespBookmarkTags struct {
+	BookmarkTags []struct {
+		Count int    `json:"count"`
+		Name  string `json:"name"`
+	} `json:"bookmark_tags"`
+	NextURL string
+
+	api *AppAPI
+}
+
+// RespUgoiraMetadata is the response from:
+//
+//  /v1/ugoira/metadata?illust_id=...
+type RespUgoiraMetadata struct {
+	UgoiraMetadata struct {
+		ZipURLs struct {
+			Medium string `json:"medium"`
+		} `json:"zip_urls"`
+		Frames []struct {
+			File  string `json:"file"`
+			Delay int    `json:"delay"`
+		} `json:"frames"`
+	} `json:"ugoira_metadata"`
 }

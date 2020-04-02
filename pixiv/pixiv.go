@@ -62,8 +62,10 @@ type AppAPI struct {
 
 	service *service
 
-	User   *UserService
-	Illust *IllustService
+	User    *UserService
+	Illust  *IllustService
+	Novel   *NovelService
+	Comment *CommentService
 }
 
 func (api *AppAPI) transport() *Transport {
@@ -90,6 +92,8 @@ func NewWithClient(client *http.Client) *AppAPI {
 	api.service = &service{api: api}
 	api.User = (*UserService)(api.service)
 	api.Illust = (*IllustService)(api.service)
+	api.Novel = (*NovelService)(api.service)
+	api.Comment = (*CommentService)(api.service)
 
 	client.Transport = &Transport{
 		Base:        client.Transport,

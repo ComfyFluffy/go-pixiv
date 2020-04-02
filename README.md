@@ -10,9 +10,10 @@ go-pixiv is a Go client for AppAPI of Pixiv.
     * Detail
     * Illusts
     * Novels
-    * BookmarkedIllusts
-    * BookmarkedNovels
+    * Bookmarks
     * Followings
+    * Recommend
+    * BookmarkTags
   * Illust
     * AddBookmark
     * DeleteBookmark
@@ -23,6 +24,16 @@ go-pixiv is a Go client for AppAPI of Pixiv.
     * NewFromFollowings
     * NewFromAll
     * NewFromMyPixiv
+    * UgoiraMetadata
+  * Novel
+    * AddBookmark
+    * DeleteBookmark
+    * AddHistory
+    * Text
+    * Comments
+    * Detail
+  * Comment
+    * Replies
   * More in progress...
 * Proxy support
   * HTTP
