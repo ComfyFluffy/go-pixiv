@@ -1,7 +1,6 @@
 package pixiv
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -55,6 +54,14 @@ type AppAPI struct {
 	DeviceToken string
 	BaseHeader http.Header
 
+	AuthURL,
+	Username,
+	Password,
+	RefreshToken,
+	AccessToken string
+	TokenExpireAt    time.Time
+	TokenExpiryDelta time.Duration
+
 	// Contains details of login user.
 	AuthResponse *RespAuth
 
@@ -68,10 +75,6 @@ type AppAPI struct {
 	Comment *CommentService
 }
 
-func (api *AppAPI) transport() *Transport {
-	return api.Client.Transport.(*Transport)
-}
-
 // New returns new PixivAppAPI with http.DefaultClient
 func New() *AppAPI {
 	return NewWithClient(&http.Client{Timeout: timeOut, Transport: http.DefaultTransport.(*http.Transport).Clone()})
@@ -81,6 +84,7 @@ func New() *AppAPI {
 func NewWithClient(client *http.Client) *AppAPI {
 	api := &AppAPI{
 		BaseURL:      baseURL,
+		AuthURL:      authURL,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		HashSecret:   hashSecret,
@@ -95,22 +99,14 @@ func NewWithClient(client *http.Client) *AppAPI {
 	api.Novel = (*NovelService)(api.service)
 	api.Comment = (*CommentService)(api.service)
 
-	client.Transport = &Transport{
-		Base:        client.Transport,
-		AuthURL:     authURL,
-		ExpiryDelta: expiryDelta,
-		api:         api,
-	}
-
 	return api
 }
 
 // SetProxy sets the proxy with the given URI.
 // Supports SOCKS5 or HTTP proxy.
 func (api *AppAPI) SetProxy(p string) error {
-	trb := api.transport().Base
 	var tr *http.Transport
-	if trx, ok := trb.(*http.Transport); ok {
+	if trx, ok := api.Client.Transport.(*http.Transport); ok {
 		tr = trx
 	} else {
 		return ErrSetProxyUnsupportedTransport
@@ -128,8 +124,9 @@ func (api *AppAPI) SetProxy(p string) error {
 	case "socks5":
 		var spauth *proxy.Auth
 		spw, _ := pr.User.Password()
-		if spw != "" || pr.User.Username() != "" {
-			spauth = &proxy.Auth{User: pr.User.Username(), Password: spw}
+		spu := pr.User.Username()
+		if spw != "" || spu != "" {
+			spauth = &proxy.Auth{User: spu, Password: spw}
 		}
 		spd, err := proxy.SOCKS5("tcp", pr.Host, spauth, proxy.Direct)
 		if err != nil {
@@ -144,29 +141,22 @@ func (api *AppAPI) SetProxy(p string) error {
 
 // SetUser sets the username and password for auth.
 func (api *AppAPI) SetUser(username, password string) {
-	tr := api.transport()
-	tr.Username = username
-	tr.Password = password
-	tr.RefreshToken = ""
+	api.Username = username
+	api.Password = password
+	api.RefreshToken = ""
 }
 
 // SetRefreshToken sets the refresh_token for auth.
 func (api *AppAPI) SetRefreshToken(token string) {
-	tr := api.transport()
-	tr.RefreshToken = token
-	tr.Username = ""
-	tr.Password = ""
+	api.RefreshToken = token
+	api.Username = ""
+	api.Password = ""
 }
 
 // SetLanguage sets Accept-Language header to the given languages.
 // This affects the language of tag translations and messages.
 func (api *AppAPI) SetLanguage(languages []string) {
 	api.BaseHeader["Accept-Language"] = languages
-}
-
-// Auth do the auth with given username and password or refresh_token.
-func (api *AppAPI) Auth() (*RespAuth, error) {
-	return api.transport().Auth(context.Background())
 }
 
 func (api *AppAPI) setHeaders(req *http.Request) {
@@ -177,14 +167,24 @@ func (api *AppAPI) setHeaders(req *http.Request) {
 	req.Header["X-Client-Hash"] = []string{hex.EncodeToString(x[:])}
 }
 
-// NewRequest sets headers and body of a new request with given method, url and form.
-func (api *AppAPI) NewRequest(method, url string, data url.Values) (*http.Request, error) {
+// NewAuthorizedRequest sets auth and other headers and body of a new request
+// with given method, url and form data.
+func (api *AppAPI) NewAuthorizedRequest(method, url string, data url.Values) (*http.Request, error) {
 	var buf io.Reader
 	if data != nil {
 		buf = strings.NewReader(data.Encode())
 	}
 	req, err := http.NewRequest(method, url, buf)
+
 	api.setHeaders(req)
+	if api.AccessToken == "" || api.TokenExpired() {
+		_, err := api.ForceAuth()
+		if err != nil {
+			return nil, err
+		}
+	}
+	req.Header["Authorization"] = []string{"Bearer " + api.AccessToken}
+
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (api *AppAPI) withAppAPIErrors(req *http.Request, v interface{}) (*http.Res
 }
 
 func (api *AppAPI) get(r interface{}, urls string, query url.Values) error {
-	req, err := api.NewRequest("GET", urls, nil)
+	req, err := api.NewAuthorizedRequest("GET", urls, nil)
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,7 @@ func (api *AppAPI) get(r interface{}, urls string, query url.Values) error {
 }
 
 func (api *AppAPI) post(r interface{}, urls string, body url.Values) error {
-	req, err := api.NewRequest("POST", urls, body)
+	req, err := api.NewAuthorizedRequest("POST", urls, body)
 	if err != nil {
 		return err
 	}
