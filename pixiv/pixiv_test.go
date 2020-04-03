@@ -22,5 +22,6 @@ func getTestAPI(t *testing.T) *AppAPI {
 	if proxy, ok := os.LookupEnv("PIXIV_PROXY"); ok {
 		api.SetProxy(proxy)
 	}
+	testAPI = api
 	return api
 }

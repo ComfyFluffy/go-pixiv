@@ -20,6 +20,10 @@ func TestBookmarkOps(t *testing.T) {
 	_, err = api.Illust.NewFromFollowings(RPublic)
 	_, err = api.Illust.NewFromMyPixiv()
 	_, err = api.Illust.Related(id, nil)
+	_, err = api.Illust.RecommendedIllusts(nil)
+	_, err = api.Illust.RecommendedManga(nil)
+	_, err = api.Illust.Ranking(&RankingQuery{Mode: RMDay})
+
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -13,6 +13,9 @@ func TestNovel(t *testing.T) {
 	_, err = api.Novel.Comments(id)
 	_, err = api.Novel.Detail(id)
 	_, err = api.Novel.Text(id)
+	_, err = api.Novel.Recommended(nil)
+	_, err = api.Novel.Ranking(nil)
+
 	if err != nil {
 		t.Fatal(err)
 	}

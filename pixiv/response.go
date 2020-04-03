@@ -113,10 +113,12 @@ type RespNovel struct {
 //  /v1/user/novels?user_id=...
 //  /v1/user/bookmarks/novel?user_id=...&restrict=...
 type RespNovels struct {
-	Novels        []Novel `json:"novels"`
+	Novels  []Novel `json:"novels"`
+	NextURL string  `json:"next_url"`
+
 	RankingNovels []Novel `json:"ranking_novels"`
-	// PrivacyPolicy PrivacyPolicy `json:"privacy_policy"`
-	NextURL string `json:"next_url"`
+
+	SearchSpanLimit int `json:"search_span_limit"`
 
 	api *AppAPI
 }
@@ -160,6 +162,11 @@ type RespIllust struct {
 type RespIllusts struct {
 	Illusts []Illust `json:"illusts"`
 	NextURL string   `json:"next_url"`
+
+	// For queries of recommended illusts and manga, RankingIllusts contains ranking illusts.
+	RankingIllusts []Illust `json:"ranking_illusts"`
+
+	SearchSpanLimit int `json:"search_span_limit"`
 
 	api *AppAPI
 }
@@ -253,4 +260,29 @@ type RespUgoiraMetadata struct {
 			Delay int    `json:"delay"`
 		} `json:"frames"`
 	} `json:"ugoira_metadata"`
+}
+
+// RespTrendingTags is the response from:
+//
+//  /v1/trending-tags/illust
+type RespTrendingTags struct {
+	TrendTags []struct {
+		Name           string `json:"tag"`
+		TranslatedName string `json:"translated_name"`
+		Illust         Illust `json:"illust"`
+	} `json:"trend_tags"`
+}
+
+// RespTags is the response from:
+//
+//  /v2/search/autocomplete?word=...
+type RespTags struct {
+	Tags []Tag `json:"tags"`
+}
+
+// RespComment is the response from:
+//
+//  POST /v1/illust/comment/add
+type RespComment struct {
+	Comment Comment `json:"comment"`
 }

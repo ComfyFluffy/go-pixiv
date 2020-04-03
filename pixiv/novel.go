@@ -70,8 +70,6 @@ func (s *NovelService) Comments(novelID int) (*RespComments, error) {
 }
 
 // Detail fetches novel's detail by it's id.
-//
-// The API seems not used in Pixiv's app.
 func (s *NovelService) Detail(novelID int) (*RespNovel, error) {
 	r := &RespNovel{}
 	err := s.api.getWithValues(r,
@@ -79,6 +77,32 @@ func (s *NovelService) Detail(novelID int) (*RespNovel, error) {
 		nil, url.Values{
 			"novel_id": {strconv.Itoa(novelID)},
 		}, "novel: detail",
+	)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+// Recommended fetches recommended novels.
+func (s *NovelService) Recommended(opts *RecommendedQuery) (*RespNovels, error) {
+	r := &RespNovels{api: s.api}
+	err := s.api.getWithValues(r,
+		s.api.BaseURL+"/v1/novel/recommended",
+		opts, nil, "novel: recommended",
+	)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+// Ranking fetches ranking novel with filter.
+func (s *NovelService) Ranking(opts *RankingQuery) (*RespNovels, error) {
+	r := &RespNovels{api: s.api}
+	err := s.api.getWithValues(r,
+		s.api.BaseURL+"/v1/novel/ranking", opts, nil,
+		"novel: ranking",
 	)
 	if err != nil {
 		return nil, err

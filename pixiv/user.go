@@ -18,6 +18,7 @@ type IllustQuery struct {
 // BookmarkQuery defines url query struct in fetching bookmark.
 type BookmarkQuery struct {
 	Filter string `url:"filter,omitempty"` //for_ios
+	Offset int    `url:"offset,omitempty"`
 }
 
 // UserDetailQuery defines url query struct in fetching user's detail.
@@ -25,14 +26,16 @@ type UserDetailQuery struct {
 	Filter string `url:"filter,omitempty"` //for_ios
 }
 
-// RecommendUsersQuery defines url query struct in fetching recommend users.
-type RecommendUsersQuery struct {
+// RecommendedUsersQuery defines url query struct in fetching recommend users.
+type RecommendedUsersQuery struct {
 	Filter string `url:"filter,omitempty"` //for_ios
+	Offset int    `url:"offset,omitempty"`
 }
 
 // FollowingQuery defines url query struct in fetching user's followings.
 type FollowingQuery struct {
 	Restrict Restrict `url:"restrict,omitempty"`
+	Offset   int      `url:"offset,omitempty"`
 }
 
 // Detail fetches user profile from /v1/user/detail
@@ -121,8 +124,8 @@ func (s *UserService) Followings(userID int, opts *FollowingQuery) (*RespUserPre
 	return r, nil
 }
 
-// Recommend fetches recommend users.
-func (s *UserService) Recommend(opts *RecommendUsersQuery) (*RespUserPreviews, error) {
+// Recommended fetches recommend users.
+func (s *UserService) Recommended(opts *RecommendedUsersQuery) (*RespUserPreviews, error) {
 	r := &RespUserPreviews{api: s.api}
 	err := s.api.getWithValues(r,
 		s.api.BaseURL+"/v1/user/recommended", opts,

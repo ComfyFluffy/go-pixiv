@@ -73,6 +73,7 @@ type AppAPI struct {
 	Illust  *IllustService
 	Novel   *NovelService
 	Comment *CommentService
+	Search  *SearchService
 }
 
 // New returns new PixivAppAPI with http.DefaultClient
@@ -98,6 +99,7 @@ func NewWithClient(client *http.Client) *AppAPI {
 	api.Illust = (*IllustService)(api.service)
 	api.Novel = (*NovelService)(api.service)
 	api.Comment = (*CommentService)(api.service)
+	api.Search = (*SearchService)(api.service)
 
 	return api
 }

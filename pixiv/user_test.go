@@ -41,7 +41,7 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = api.User.Recommend(nil)
+	_, err = api.User.Recommended(nil)
 	_, err = api.User.IllustBookmarkTags(RPublic)
 	_, err = api.User.NovelBookmarkTags(RPublic)
 	rf, err := api.User.Followings(id, nil)
