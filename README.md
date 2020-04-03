@@ -7,37 +7,59 @@ go-pixiv is a Go client for AppAPI of Pixiv.
 * AppAPI
   * Auth
   * User
-    * Detail
-    * Illusts
-    * Novels
-    * Bookmarks
-    * Followings
-    * Recommend
-    * BookmarkTags
+    * `Detail`
+    * `Illusts`
+    * `Novels`
+    * `BookmarkedIllusts`
+    * `BookmarkedNovels`
+    * `Followings`
+    * `Recommended`
+    * `IllustBookmarkTags`
+    * `NovelBookmarkTags`
   * Illust
-    * AddBookmark
-    * DeleteBookmark
-    * AddHistory
-    * Comments
-    * Detail
-    * Related
-    * NewFromFollowings
-    * NewFromAll
-    * NewFromMyPixiv
-    * UgoiraMetadata
+    * `AddBookmark`
+    * `DeleteBookmark`
+    * `AddHistory`
+    * `Comments`
+    * `Detail`
+    * `Related`
+    * `NewFromFollowings`
+    * `NewFromAll`
+    * `NewFromMyPixiv`
+    * `UgoiraMetadata`
+    * `RecommendedIllusts`
+    * `RecommendedManga`
+    * `Ranking`
   * Novel
-    * AddBookmark
-    * DeleteBookmark
-    * AddHistory
-    * Text
-    * Comments
-    * Detail
+    * `AddBookmark`
+    * `DeleteBookmark`
+    * `AddHistory`
+    * `Text`
+    * `Comments`
+    * `Detail`
+    * `Recommended`
+    * `Ranking`
   * Comment
-    * Replies
-  * More in progress...
+    * `RepliesIllust`
+    * `RepliesNovel`
+    * `AddToIllust`
+    * `AddToNovel`
+    * `DeleteFromIllust`
+    * `DeleteFromNovel`
+  * Search
+    * `IllustTrendingTags`
+    * `NovelTrendingTags`
+    * `Illusts`
+    * `PopularIllustsPreview`
+    * `Novels`
+    * `PopularNovelsPreview`
+    * `TagsStartWith`
+    * `Users`
 * Proxy support
   * HTTP
   * SOCKS5
+* TODO
+  * [] Bypass SNI filtering with DoH (Bypass GFW)
 
 ## Install
 
@@ -65,12 +87,22 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-
     log.Printf("%+v", r)
+
     api.Illust.AddBookmark(123, pixiv.RPublic, nil)
     api.Illust.AddBookmark(456, pixiv.RPrivate,
         &pixiv.AddBookmarkOptions{
         Tags: []string{"風景"},
     })
+
+    r2, err := api.Search.Illusts("風景", &pixiv.SearchQuery{
+        SearchTarget: pixiv.STExactMatchTags,
+        Sort: pixiv.SDateDesc,
+    })
+    if err != nil {
+      log.Fatal(err)
+    }
+    log.Printf("%+v", r2)
+    log.Print(r2.NextIllusts())
 }
 ```
