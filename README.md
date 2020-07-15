@@ -55,8 +55,6 @@ go-pixiv is a Go client for AppAPI of Pixiv.
     * `PopularNovelsPreview`
     * `TagsStartWith`
     * `Users`
-* TODO
-  * [] Bypass SNI filtering with DoH (Bypass GFW)
 
 ## Install
 
