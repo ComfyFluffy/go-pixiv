@@ -58,8 +58,6 @@ go-pixiv is a Go client for AppAPI of Pixiv.
 * Proxy support
   * HTTP
   * SOCKS5
-* TODO
-  * [] Bypass SNI filtering with DoH (Bypass GFW)
 
 ## Install
 
