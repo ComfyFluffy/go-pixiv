@@ -64,6 +64,7 @@ func (api *AppAPI) ForceAuth() (*RespAuth, error) {
 			return nil, errors.New("pixiv auth: no access_token received")
 		}
 		api.AccessToken = r.Response.AccessToken
+		api.RefreshToken = r.Response.RefreshToken
 		if r.Response.ExpiresIn != 0 {
 			api.TokenExpireAt = time.Now().Add(time.Duration(r.Response.ExpiresIn) * time.Second)
 		}

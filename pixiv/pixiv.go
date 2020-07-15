@@ -4,14 +4,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"golang.org/x/net/proxy"
 )
 
 const (
@@ -34,12 +31,6 @@ var baseHeader = http.Header{
 	// "Accept-Encoding": {"br, gzip, deflate"},
 	"Accept-Language": {"en-us"},
 }
-
-// Proxy setting errors
-var (
-	ErrSetProxyUnsupportedTransport = errors.New("pixiv: can only set proxy for *http.Transport")
-	ErrSetProxyUnsupportedProtocol  = errors.New("pixiv: unsupported proxy protocol")
-)
 
 type service struct {
 	api *AppAPI
@@ -102,43 +93,6 @@ func NewWithClient(client *http.Client) *AppAPI {
 	api.Search = (*SearchService)(api.service)
 
 	return api
-}
-
-// SetProxy sets the proxy with the given URI.
-// Supports SOCKS5 or HTTP proxy.
-func (api *AppAPI) SetProxy(p string) error {
-	var tr *http.Transport
-	if trx, ok := api.Client.Transport.(*http.Transport); ok {
-		tr = trx
-	} else {
-		return ErrSetProxyUnsupportedTransport
-	}
-
-	pr, err := url.Parse(p)
-	if err != nil {
-		return err
-	}
-
-	switch strings.ToLower(pr.Scheme) {
-	case "http":
-		hp := http.ProxyURL(pr)
-		tr.Proxy = hp
-	case "socks5":
-		var spauth *proxy.Auth
-		spw, _ := pr.User.Password()
-		spu := pr.User.Username()
-		if spw != "" || spu != "" {
-			spauth = &proxy.Auth{User: spu, Password: spw}
-		}
-		spd, err := proxy.SOCKS5("tcp", pr.Host, spauth, proxy.Direct)
-		if err != nil {
-			return err
-		}
-		tr.DialContext = spd.(proxy.ContextDialer).DialContext
-	default:
-		return ErrSetProxyUnsupportedProtocol
-	}
-	return nil
 }
 
 // SetUser sets the username and password for auth.

@@ -55,9 +55,6 @@ go-pixiv is a Go client for AppAPI of Pixiv.
     * `PopularNovelsPreview`
     * `TagsStartWith`
     * `Users`
-* Proxy support
-  * HTTP
-  * SOCKS5
 * TODO
   * [] Bypass SNI filtering with DoH (Bypass GFW)
 
@@ -80,8 +77,6 @@ func main() {
 
     api.SetUser("xxx@xxx.com", "password")
     // or api.SetRefreshToken("xxx")
-
-    api.SetProxy("socks5://127.0.0.1:1080")
 
     r, err := api.User.Detail(123, nil)
     if err != nil {

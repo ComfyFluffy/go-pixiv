@@ -19,9 +19,6 @@ func getTestAPI(t *testing.T) *AppAPI {
 		return nil
 	}
 	api.SetRefreshToken(token)
-	if proxy, ok := os.LookupEnv("PIXIV_PROXY"); ok {
-		api.SetProxy(proxy)
-	}
 	testAPI = api
 	return api
 }
