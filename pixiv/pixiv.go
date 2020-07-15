@@ -50,6 +50,7 @@ type AppAPI struct {
 	Password,
 	RefreshToken,
 	AccessToken string
+	UserID           int
 	TokenExpireAt    time.Time
 	TokenExpiryDelta time.Duration
 

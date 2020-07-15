@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -65,6 +66,7 @@ func (api *AppAPI) ForceAuth() (*RespAuth, error) {
 		}
 		api.AccessToken = r.Response.AccessToken
 		api.RefreshToken = r.Response.RefreshToken
+		api.UserID, _ = strconv.Atoi(r.Response.User.ID)
 		if r.Response.ExpiresIn != 0 {
 			api.TokenExpireAt = time.Now().Add(time.Duration(r.Response.ExpiresIn) * time.Second)
 		}
