@@ -112,8 +112,8 @@ func (api *AppAPI) SetRefreshToken(token string) {
 
 // SetLanguage sets Accept-Language header to the given languages.
 // This affects the language of tag translations and messages.
-func (api *AppAPI) SetLanguage(languages []string) {
-	api.BaseHeader["Accept-Language"] = languages
+func (api *AppAPI) SetLanguage(language string) {
+	api.BaseHeader["Accept-Language"] = []string{language}
 }
 
 // SetHeaders sets the header of req with BaseHeader
@@ -154,6 +154,18 @@ func (api *AppAPI) NewAuthorizedRequest(method, url string, body io.Reader) (*ht
 		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 	}
 
+	return req, nil
+}
+
+// NewPximgRequest sets base headers and sets Referer to "https://app-api.pixiv.net/"
+func (api *AppAPI) NewPximgRequest(method, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	api.SetHeaders(req)
+	req.Header["Referer"] = []string{"https://app-api.pixiv.net/"}
 	return req, nil
 }
 
