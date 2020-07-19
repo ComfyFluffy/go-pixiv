@@ -23,10 +23,10 @@ const (
 )
 
 var baseHeader = http.Header{
-	"User-Agent":     {"PixivIOSApp/7.8.16 (iOS 12.4.5; iPhone7,2)"},
+	"User-Agent":     {"PixivIOSApp/7.8.30 (iOS 12.4.5; iPhone7,2)"},
 	"App-OS":         {"ios"},
-	"App-OS-Version": {"12.4.5"},
-	"App-Version":    {"7.8.16"},
+	"App-OS-Version": {"12.4.6"},
+	"App-Version":    {"7.8.30"},
 	"Accept":         {"*/*"},
 	// "Accept-Encoding": {"br, gzip, deflate"},
 	"Accept-Language": {"en-us"},
@@ -70,7 +70,7 @@ type AppAPI struct {
 
 // New returns new PixivAppAPI with http.DefaultClient
 func New() *AppAPI {
-	return NewWithClient(&http.Client{Timeout: timeOut, Transport: http.DefaultTransport.(*http.Transport).Clone()})
+	return NewWithClient(&http.Client{Timeout: timeOut, Transport: &http.Transport{}})
 }
 
 // NewWithClient returns new PixivAppAPI with the given http.Client.
@@ -116,7 +116,9 @@ func (api *AppAPI) SetLanguage(languages []string) {
 	api.BaseHeader["Accept-Language"] = languages
 }
 
-func (api *AppAPI) setHeaders(req *http.Request) {
+// SetHeaders sets the header of req with BaseHeader
+// and adds X-Client-Time & X-Client-Hash headers.
+func (api *AppAPI) SetHeaders(req *http.Request) {
 	req.Header = api.BaseHeader.Clone()
 	nows := time.Now().Format(time.RFC3339)
 	req.Header["X-Client-Time"] = []string{nows}
@@ -124,31 +126,35 @@ func (api *AppAPI) setHeaders(req *http.Request) {
 	req.Header["X-Client-Hash"] = []string{hex.EncodeToString(x[:])}
 }
 
+func readerFromForm(data url.Values) io.Reader {
+	if data != nil {
+		return strings.NewReader(data.Encode())
+	}
+	return nil
+}
+
 // NewAuthorizedRequest sets auth and other headers and body of a new request
 // with given method, url and form data.
-func (api *AppAPI) NewAuthorizedRequest(method, url string, data url.Values) (*http.Request, error) {
-	var buf io.Reader
-	if data != nil {
-		buf = strings.NewReader(data.Encode())
+func (api *AppAPI) NewAuthorizedRequest(method, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
 	}
-	req, err := http.NewRequest(method, url, buf)
 
-	api.setHeaders(req)
 	if api.AccessToken == "" || api.TokenExpired() {
 		_, err := api.ForceAuth()
 		if err != nil {
 			return nil, err
 		}
 	}
-	req.Header["Authorization"] = []string{"Bearer " + api.AccessToken}
 
-	if err != nil {
-		return nil, err
-	}
-	if data != nil {
+	api.SetHeaders(req)
+	req.Header["Authorization"] = []string{"Bearer " + api.AccessToken}
+	if body != nil {
 		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 	}
-	return req, err
+
+	return req, nil
 }
 
 // receive sends the request and decode the response into successV or errorV.
@@ -208,8 +214,8 @@ func (api *AppAPI) get(r interface{}, urls string, query url.Values) error {
 	return err
 }
 
-func (api *AppAPI) post(r interface{}, urls string, body url.Values) error {
-	req, err := api.NewAuthorizedRequest("POST", urls, body)
+func (api *AppAPI) post(r interface{}, urls string, data url.Values) error {
+	req, err := api.NewAuthorizedRequest("POST", urls, readerFromForm(data))
 	if err != nil {
 		return err
 	}

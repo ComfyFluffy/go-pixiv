@@ -41,7 +41,7 @@ func (api *AppAPI) ForceAuth() (*RespAuth, error) {
 	}
 
 	req, err := http.NewRequest("POST", api.AuthURL, strings.NewReader(f.Encode()))
-	api.setHeaders(req)
+	api.SetHeaders(req)
 	req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 
 	resp, err := api.Client.Do(req)

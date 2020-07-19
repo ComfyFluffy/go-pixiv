@@ -74,7 +74,7 @@ type ErrAppAPI struct {
 }
 
 func (e *ErrAppAPI) Error() string {
-	return fmt.Sprintf("pixiv: %s %s %d: %s", e.response.Request.Method, e.response.Request.URL, e.response.StatusCode, e.Errors.Message)
+	return fmt.Sprintf("pixiv: %s %q %d: %s %s %s", e.response.Request.Method, e.response.Request.URL, e.response.StatusCode, e.Errors.Message, e.Errors.Reason, e.Errors.UserMessage)
 }
 
 // RespComments is the response from:
