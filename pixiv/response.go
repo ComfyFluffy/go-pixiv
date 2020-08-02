@@ -82,8 +82,8 @@ func (e *ErrAppAPI) Error() string {
 //  /v2/novel/comments?novel_id=...
 //  /v1/illust/comment/replies?comment_id=...
 type RespComments struct {
-	Comments []Comment `json:"comments"`
-	NextURL  string    `json:"next_url"`
+	Comments []*Comment `json:"comments"`
+	NextURL  string     `json:"next_url"`
 
 	api *AppAPI
 }
@@ -113,10 +113,10 @@ type RespNovel struct {
 //  /v1/user/novels?user_id=...
 //  /v1/user/bookmarks/novel?user_id=...&restrict=...
 type RespNovels struct {
-	Novels  []Novel `json:"novels"`
-	NextURL string  `json:"next_url"`
+	Novels  []*Novel `json:"novels"`
+	NextURL string   `json:"next_url"`
 
-	RankingNovels []Novel `json:"ranking_novels"`
+	RankingNovels []*Novel `json:"ranking_novels"`
 
 	SearchSpanLimit int `json:"search_span_limit"`
 
@@ -160,11 +160,11 @@ type RespIllust struct {
 //  /v1/illust/new?content_type=...
 //  /v1/user/illusts?user_id=...&type=...
 type RespIllusts struct {
-	Illusts []Illust `json:"illusts"`
-	NextURL string   `json:"next_url"`
+	Illusts []*Illust `json:"illusts"`
+	NextURL string    `json:"next_url"`
 
 	// For queries of recommended illusts and manga, RankingIllusts contains ranking illusts.
-	RankingIllusts []Illust `json:"ranking_illusts"`
+	RankingIllusts []*Illust `json:"ranking_illusts"`
 
 	SearchSpanLimit int `json:"search_span_limit"`
 
@@ -207,18 +207,18 @@ type RespUserDetail struct {
 //
 //  /v1/user/following?restrict=...&user_id=...
 type RespUserPreviews struct {
-	UserPreviews []UserPreview `json:"user_previews"`
-	NextURL      string        `json:"next_url"`
+	UserPreviews []*UserPreview `json:"user_previews"`
+	NextURL      string         `json:"next_url"`
 
 	api *AppAPI
 }
 
 // UserPreview contains last 3 illusts and novels of a user.
 type UserPreview struct {
-	User    User     `json:"user"`
-	Illusts []Illust `json:"illusts"`
-	Novels  []Novel  `json:"novels"`
-	IsMuted bool     `json:"is_muted"`
+	User    User      `json:"user"`
+	Illusts []*Illust `json:"illusts"`
+	Novels  []*Novel  `json:"novels"`
+	IsMuted bool      `json:"is_muted"`
 }
 
 // NextFollowing fetches NextURL with API.
