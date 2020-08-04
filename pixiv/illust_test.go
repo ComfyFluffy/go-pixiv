@@ -6,7 +6,7 @@ func TestBookmarkOps(t *testing.T) {
 	id := 80486549
 	api := getTestAPI(t)
 	err := api.Illust.DeleteBookmark(id)
-	if err != nil && err.(*ErrAppAPI).response.StatusCode != 404 {
+	if err != nil && err.(*ErrAppAPI).Response.StatusCode != 404 {
 		t.Fatal(err)
 	}
 

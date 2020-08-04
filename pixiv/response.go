@@ -70,11 +70,11 @@ type ErrAppAPI struct {
 		// } `json:"user_message_details"`
 	} `json:"error"`
 
-	response *http.Response
+	Response *http.Response
 }
 
 func (e *ErrAppAPI) Error() string {
-	return fmt.Sprintf("pixiv: %s %q %d: %s %s %s", e.response.Request.Method, e.response.Request.URL, e.response.StatusCode, e.Errors.Message, e.Errors.Reason, e.Errors.UserMessage)
+	return fmt.Sprintf("pixiv: %s %q %d: %s %s %s", e.Response.Request.Method, e.Response.Request.URL, e.Response.StatusCode, e.Errors.Message, e.Errors.Reason, e.Errors.UserMessage)
 }
 
 // RespComments is the response from:

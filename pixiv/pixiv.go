@@ -207,7 +207,7 @@ func (api *AppAPI) withAppAPIErrors(req *http.Request, v interface{}) (*http.Res
 		return nil, err
 	}
 	if !ok {
-		rerr.response = resp
+		rerr.Response = resp
 		return nil, rerr
 	}
 	return resp, nil
