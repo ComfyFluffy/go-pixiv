@@ -23,7 +23,7 @@ const (
 )
 
 var baseHeader = http.Header{
-	"User-Agent":     {"PixivIOSApp/7.8.30 (iOS 12.4.5; iPhone7,2)"},
+	"User-Agent":     {"PixivIOSApp/7.8.30 (iOS 12.4.6; iPhone7,2)"},
 	"App-OS":         {"ios"},
 	"App-OS-Version": {"12.4.6"},
 	"App-Version":    {"7.8.30"},
