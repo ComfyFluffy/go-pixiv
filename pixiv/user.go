@@ -17,8 +17,9 @@ type IllustQuery struct {
 
 // BookmarkQuery defines url query struct in fetching bookmark.
 type BookmarkQuery struct {
-	Filter string `url:"filter,omitempty"` //for_ios
-	Offset int    `url:"offset,omitempty"`
+	Filter        string `url:"filter,omitempty"` //for_ios
+	Offset        int    `url:"offset,omitempty"`
+	MaxBookmarkID int    `url:"max_bookmark_id,omitempty"`
 }
 
 // UserDetailQuery defines url query struct in fetching user's detail.
