@@ -76,14 +76,15 @@ func New() *AppAPI {
 // NewWithClient returns new PixivAppAPI with the given http.Client.
 func NewWithClient(client *http.Client) *AppAPI {
 	api := &AppAPI{
-		BaseURL:      baseURL,
-		AuthURL:      authURL,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		HashSecret:   hashSecret,
-		DeviceToken:  deviceToken,
-		BaseHeader:   baseHeader.Clone(),
-		Client:       client,
+		BaseURL:          baseURL,
+		AuthURL:          authURL,
+		ClientID:         clientID,
+		ClientSecret:     clientSecret,
+		HashSecret:       hashSecret,
+		DeviceToken:      deviceToken,
+		BaseHeader:       baseHeader.Clone(),
+		Client:           client,
+		TokenExpiryDelta: 600 * time.Second,
 	}
 
 	api.service = &service{api: api}

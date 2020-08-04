@@ -1,6 +1,9 @@
 package pixiv
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestUser(t *testing.T) {
 	id := 23459386
@@ -10,6 +13,8 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	time.Sleep(51 * time.Second)
 
 	ri, err := api.User.Illusts(id, nil)
 	_, err = ri.NextIllusts()
