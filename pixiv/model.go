@@ -181,6 +181,18 @@ type Novel struct {
 	IsXRestricted  bool      `json:"is_x_restricted"`
 }
 
+// NovelSeriesDetail defines the detail of novel series
+type NovelSeriesDetail struct {
+	ID                  int    `json:"id"`
+	Title               string `json:"title"`
+	Caption             string `json:"caption"`
+	IsOriginal          bool   `json:"is_original"`
+	IsConcluded         bool   `json:"is_concluded"`
+	ContentCount        int    `json:"content_count"`
+	TotalCharacterCount int    `json:"total_character_count"`
+	User                User   `json:"user"`
+}
+
 // Series is embedded in Illust(where Type="manga"), Novel
 type Series struct {
 	ID    int    `json:"id"`
